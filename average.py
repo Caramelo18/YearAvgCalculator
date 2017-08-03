@@ -33,6 +33,7 @@ def navigate_courses():
     sum_credits = 0
     total_notes = 0
     grades = dict()
+    year_grades = dict()
 
     for course in courses:
     #course = courses[0]
@@ -51,10 +52,29 @@ def navigate_courses():
         sum_credits += credits
         total_notes += credits * course_average
 
+        year_semester = year + 'A ' + semester
+        if year_semester in grades:
+            grades[year_semester] = grades[year_semester] + (course_average * credits)
+        else:
+            grades[year_semester] = course_average * credits
 
+        if year in year_grades:
+            year_grades[year] = year_grades[year] + (course_average * credits)
+        else:
+            year_grades[year] = course_average * credits
 
     total_course_average = round(total_notes/sum_credits, 2)
     print("Course average:", total_course_average)
+
+    for semester in grades:
+        semester_average = round(int(grades[semester])/30,2)
+        print(semester, "-", semester_average)
+
+    print("\n")
+
+    for year in year_grades:
+        year_average = round(int(year_grades[year])/60, 2)
+        print(year, "year -" , year_average)
 
 
 def analyze_course(id, own_grade):
@@ -118,7 +138,7 @@ def analyze_course(id, own_grade):
     percentage_below = round(num_below/num_approved * 100, 2)
     percentage_same = round(num_same/num_approved * 100, 2)
     percentage_above = round(num_above/num_approved * 100, 2)
-    print(average)
+    print("Course average:", average)
     print("Your grade is better than ", percentage_below, "%")
     print(percentage_same, "% have the same grade")
     print("Your grade is worse than ", percentage_above, "% \n")
