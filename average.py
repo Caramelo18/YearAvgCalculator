@@ -30,20 +30,34 @@ def navigate_courses():
 
     courses = table.find_elements_by_css_selector('.i, .p')
 
+    sum_credits = 0
+    total_notes = 0
+    grades = dict()
+
     for course in courses:
     #course = courses[0]
         year = course.find_element_by_css_selector(':first-child').get_attribute('innerHTML')
         semester = course.find_element_by_css_selector(':nth-child(2)').get_attribute('innerHTML')
         link = course.find_element_by_css_selector(':nth-child(3) a').get_attribute('href')
         name = course.find_element_by_class_name('uc').text
+        credits = course.find_element_by_css_selector(':nth-child(6)').get_attribute('innerHTML')
+        credits = float(credits.replace(",", "."))
+        own_grade = int(get_own_grade(course))
 
         id = link.split('=')[1]
-        print(year, semester, name)
+        print(year, semester, name, credits, own_grade)
 
-        analyze_course(id)
+        course_average = analyze_course(id, own_grade)
+        sum_credits += credits
+        total_notes += credits * course_average
 
 
-def analyze_course(id):
+
+    total_course_average = round(total_notes/sum_credits, 2)
+    print("Course average:", total_course_average)
+
+
+def analyze_course(id, own_grade):
     cookies = browser.get_cookies()
     #migrate cookies from browser to BeautifulSoup
     session = requests.Session()
@@ -64,6 +78,9 @@ def analyze_course(id):
 
     num_approved = 0
     sum_notes = 0
+    num_below = 0
+    num_above = 0
+    num_same = 0
 
     for result in results:
         soup = BeautifulSoup(str(result), "lxml")
@@ -88,10 +105,35 @@ def analyze_course(id):
             num_approved += ammount
             sum_notes += ammount * grade
 
+            if grade < own_grade:
+                num_below += ammount
+            elif grade == own_grade:
+                num_same += ammount
+            else:
+                num_above += ammount
+
 
     average = sum_notes/num_approved
+    average = round(average, 2)
+    percentage_below = round(num_below/num_approved * 100, 2)
+    percentage_same = round(num_same/num_approved * 100, 2)
+    percentage_above = round(num_above/num_approved * 100, 2)
     print(average)
-    #print("\n")
+    print("Your grade is better than ", percentage_below, "%")
+    print(percentage_same, "% have the same grade")
+    print("Your grade is worse than ", percentage_above, "% \n")
+    return average
+
+def get_own_grade(course):
+    own_grade = course.find_element_by_css_selector(':nth-child(7)').get_attribute('innerHTML')
+
+    if own_grade == "&nbsp;":
+        own_grade = course.find_element_by_css_selector(':nth-child(9)').get_attribute('innerHTML')
+
+    if own_grade == "&nbsp;":
+        own_grade = course.find_element_by_css_selector(':nth-child(11)').get_attribute('innerHTML')
+
+    return own_grade
 
 
 def main():
