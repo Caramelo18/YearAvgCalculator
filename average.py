@@ -43,7 +43,13 @@ def navigate_courses():
         name = course.find_element_by_class_name('uc').text
         credits = course.find_element_by_css_selector(':nth-child(6)').get_attribute('innerHTML')
         credits = float(credits.replace(",", "."))
-        own_grade = int(get_own_grade(course))
+
+        own_grade = get_own_grade(course)
+        if own_grade == '&nbsp;':
+            break
+        own_grade = int(own_grade)
+
+
 
         id = link.split('=')[1]
         print(year, semester, name, credits, own_grade)
